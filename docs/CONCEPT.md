@@ -14,9 +14,9 @@ The recommendation engine only works if experiences attach to canonical things. 
 - **Roaster** — name, location, website, subscribable.
 - **Coffee** — a specific offering from a roaster: origin(s), process, variety, roast level, harvest/lot, roast date range. The hardest entity: new lots every few months, no barcode standard, same farm under different names. Needs strong search-and-match on creation, dedup tooling, and unverified status until confirmed.
 - **Café** — name, coordinates, hours, subscribable. Serves a list of Coffees (the Café→Coffee edge, editable by the café or by users; this is what makes "bags available near you" answerable). Amenities as a fixed set of structured tags (wifi, laptop-friendly, outlets, food, outdoor seating), OSM-style. No full food menus.
-- **Experience** (diary entry) — the atomic unit. Links to a Coffee and optionally a Café. Rating, canonical descriptors, free descriptors, optional text, photo, and brew recipe. Private by default; user may share.
+- **Experience** (diary entry) — the atomic unit: I drank this coffee, here, now. Links to a Coffee, and to a place (home, a Café, elsewhere). Carries two separate, optional verdicts: one on the coffee (rating, canonical descriptors, free descriptors, notes, photo, brew recipe if self-brewed) and, when the place is a café, one on the café (service, space, amenities). Private by default; either verdict may be shared. The diary is one timeline of uniform entries that differ only in their details, never split into sections; filters narrow it by where it was drunk (home, café, elsewhere), by coffee, or by café. Repeated brews of one bag group into a view of that bag.
 - **Recipe** — attached to an experience: method, dose, water amount and type, temperature, grind, time, steps.
-- **Review** — a shared experience of a Café or Coffee. Personal expression; excluded from open data exports.
+- **Review** — the shared verdict of an experience, on a Café or on a Coffee. Not a separate thing the user writes; a café visit becomes a café review when its café verdict is filled in and shared. Personal expression; excluded from open data exports.
 - **Event** — hosted by a café, roaster, or person: cuppings, workshops, throwdowns. Subscribers are notified; people can RSVP.
 - **Post** — coffee-related writing by a user: trip reports, comparisons, opinions, tips. May attach to entities. Discovered via search, entity pages, and author subscriptions, never via an algorithmic feed.
 - **User** — account, taste profile, reputation, subscriptions. Personal data, never exported.
@@ -29,12 +29,15 @@ Every record carries provenance: created by (user id), source, license, verifica
 - **Onboarding**: a very short quiz to bootstrap (roast preference, black vs. milk, pick a few descriptors). Nothing more; the diary does the real work.
 - **Descriptors**: two layers. Canonical vocabulary (structured, mapped to a flavor-wheel-style hierarchy) for stable, explainable comparison. Free descriptors kept verbatim, embedded, and used as signal; promoted or mapped to canonical as usage grows.
 - **Taste vector**: derived per user from ratings × descriptors across experiences, plus embeddings of free text and private diary notes. Recomputed incrementally. Personal data is analyzed only to serve its owner; recommendations should be able to show why.
+- **A person is a set of points, not an average**: taste is plural. Someone may love heavily fermented coffees from anywhere, clean washed Ethiopians, and every natural Kenyan; averaging those into one vector describes nobody. Loved and disliked entities are both kept as individual anchors; recommendation is attraction to the loved ones minus repulsion from the disliked ones. A clustering method that discovers the number of clusters itself groups anchors into named tastes for explanation. One taste or twenty, both are fine. Nobody is asked to state rules about their own taste; a note is read into observations about that cup ("too fermented for me"), the person confirms only what was read, and conditional preferences emerge from where the points sit. Curiosity is separate from liking: the person can declare what they are curious about (new processes, varieties, roast styles, brew methods) and what they are not, and which experiments they take up refines it. Cafés work the same way: a counter-culture community spot and a posh high-end one can both be genuine tastes of one person.
 - **Recommendations**:
-  - Similar-taste review surfacing: rank a café's or coffee's reviews by similarity between reader's and author's vectors. Cheap, no LLM.
-  - Coffee/café suggestions: nearest neighbors in taste space, filtered by availability (local roasters, cafés nearby, bags stocked locally).
-  - Experiments: items at a controlled distance from the user's vector, always labeled as such. Feedback on experiments maps the user's boundaries.
-  - AI summaries: not per user. Cluster users into a small number of taste archetypes, generate one cached summary per café/coffee per archetype, regenerate when enough new reviews arrive. Cost is constant per entity.
+  - Similar-taste review surfacing: rank a café's or coffee's reviews by similarity between reader's and author's taste. Cheap, no LLM.
+  - Coffee/café suggestions: nearest neighbors to any of the person's anchors, filtered by availability (local roasters, cafés nearby, bags stocked locally). Explanations name the anchor or the taste ("because you loved X", "one of your tastes: clean washed Ethiopians").
+  - Attributes beyond flavor (roaster size, certifications, bag design) surface as preferences through skew between what a person loved and what they tried, and are explained the same way. Popularity may be a personal preference; it is never a ranking.
+  - Experiments: items at a controlled distance from the person's anchors, always labeled as such. Three regions: near a loved anchor (recommend), near a disliked anchor (never offer, however novel), far from every anchor (genuinely new; offered only along dimensions the person is curious about). Feedback on experiments maps the user's boundaries.
+  - AI summaries: never per user. Two forms are open (see Open questions): one general summary per entity that names disagreement between taste groups, or one summary per entity per taste mode. Either is cached and regenerated when enough new reviews arrive, so cost is constant per entity. A private per-user taste profile summary, shown only to its owner, is separate and cheap.
   - Collaborative filtering later, once user overlap is sufficient.
+  - Approach in `docs/RECOMMENDATIONS.md`.
 
 ## Identifiers
 
@@ -98,7 +101,9 @@ Rationale: this is where the taste graph starts, where commerce eventually lives
 
 - Which forums and communities to seed from, and which local roasters to pilot with.
 - Wedge: bag-first (proposed) or café-first.
-- Platform at launch: mobile, web, or both. This decides more of the stack than anything else.
+- Coffee page summaries: one general AI summary per entity that names disagreement between taste groups (plus reviews ordered by taste similarity), or one summary per entity per taste mode. Both open; decide once real reviews exist.
+- Store listings via a native shell (Capacitor or Tauri): a possible future, decided on go-to-market grounds (discoverability, legitimacy with roasters), not a design constraint.
+- Duplicate matching UX when logging a coffee without a printed ID: to be designed.
 - Moderation process and what "trusted contributor" concretely means.
 - Whether public reviews are included in exports as aggregates only, or not at all.
 - Roaster validation: talk to a few roasters before building B2B tools, including whether they would print a QR/ID on bags.
@@ -106,7 +111,7 @@ Rationale: this is where the taste graph starts, where commerce eventually lives
 
 ## Builder context
 
-Solo developer, building with AI assistance, no funding. Stack is decided in a separate session using this document. Constraints that follow from the manifesto and the situation:
+Solo developer, building with AI assistance, no funding. Platform is decided: a mobile-first PWA; stores are a possible future. The stack and the standing rules are in `docs/ARCHITECTURE.md`. Constraints that follow from the manifesto and the situation:
 
 - **Self-hostable by anyone.** Standard, portable components (e.g. plain Postgres, containerized deployment); no logic locked into proprietary vendor features. Whether the flagship instance runs on managed or self-operated infrastructure is a separate choice, made on cost and operational load, not principle.
 - **Contributor-friendly.** One-command local setup; tools with enough adoption that new contributors and AI assistants are already fluent in them.
