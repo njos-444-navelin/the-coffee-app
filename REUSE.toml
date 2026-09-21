@@ -1,0 +1,30 @@
+version = 1
+SPDX-PackageName = "The Coffee App"
+SPDX-PackageSupplier = "The Coffee App contributors"
+SPDX-PackageDownloadLocation = "https://github.com/njos-444-navelin/the-coffee-app"
+
+# Project texts and documentation.
+[[annotations]]
+path = ["*.md", "docs/**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 The Coffee App contributors"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+# Manifests, lockfiles, and configuration that cannot carry a comment header.
+# Source files (.ts, .svelte, .css, .html) carry their own SPDX header instead.
+[[annotations]]
+path = [
+	"**/*.json",
+	"**/*.yaml",
+	"**/*.yml",
+	"**/*.toml",
+	"**/*.txt",
+	".gitignore",
+	".npmrc",
+	".prettierrc",
+	".prettierignore",
+	"**/.env.example",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 The Coffee App contributors"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
