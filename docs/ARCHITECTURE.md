@@ -66,6 +66,7 @@ Rules 1 and 2 are required by the public API and by offline; they also happen to
 - All embedding and language-model calls go through an internal provider adapter (one interface, one implementation per provider, including a local one) so self-hosters can run without external API keys.
 - Language models do per-record, cached jobs only, listed in `docs/RECOMMENDATIONS.md`. They never select recommendation candidates and never measure distance.
 - Diary text sent to an external provider is the minimum needed, never accompanied by identity, only to providers whose terms exclude training on submitted data, and this is stated on the privacy page (manifesto 9).
+- Candidate, not adopted: non-autoregressive decision models (Laya, open weights, Apache 2.0, runs locally; Jev, a closed metered API of the same idea). They answer a typed question about a record (one of under twenty options, an ordinal rubric, or yes/no) with a calibrated probability in one pass, and cannot generate or extract. Considered for moderation of community contributions (spam and abuse on reviews, wiki edits, and new records) and for pairwise duplicate-entity checks; possibly later for sub-questions distilled from note reading. They need fine-tuning on our own labelled data, so revisit once a few thousand labelled contributions exist. If adopted they sit behind the provider adapter with the local model as the default, and the job is added to `docs/RECOMMENDATIONS.md` first.
 
 ## Internationalisation
 
