@@ -9,4 +9,4 @@ Read `docs/RECOMMENDATIONS.md` when working on taste, matching, or anything that
 If a request conflicts with it, point out the conflict and stop; do not comply silently or work around it.
 If unsure whether something conflicts, ask.
 
-Commits are signed off under the Developer Certificate of Origin (`git commit -s`).
+Commits are signed off under the Developer Certificate of Origin (`git commit -s`). Every new source file starts with the two-line SPDX header described in `CONTRIBUTING.md`.

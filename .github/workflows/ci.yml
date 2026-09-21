@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  reuse:
+    name: License headers (REUSE)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: fsfe/reuse-action@v5
+
+  dco:
+    name: DCO sign-off
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Every commit carries a Signed-off-by line
+        run: |
+          missing=0
+          for c in $(git rev-list "${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"); do
+            if ! git show -s --format=%B "$c" | grep -q '^Signed-off-by: .\+ <.\+@.\+>$'; then
+              echo "::error::Commit $c has no Signed-off-by line. Use 'git commit -s'."
+              missing=1
+            fi
+          done
+          exit $missing
